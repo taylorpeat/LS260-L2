@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <title>Collection Exercises</title>
+    <meta charset="UTF-8" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="underscore-min.js"></script>
+    <script src="backbone-min.js"></script>
+    <script src="handlebars-v3.0.0.js"></script>
+  </head>
+  <body>
+    <script id="post" type="text/template">
+      <article>
+        <header>
+          <h1>Title here</h1>
+          <p>By *user name*</p>
+        </header>
+        <p>Post body here</p>
+      </article>
+    </script>
+    <script id="users" type="text/template">
+      {{#each users}}
+      <article id="user_{{id}}">
+        <h1><a href="http://{{website}}">{{name}}</a></h1>
+        <h2><a href="mailto:{{email}}">{{email}}</a></h2>
+        <dl>
+          <dt>User name</dt>
+          <dd>{{username}}</dd>
+          <dt>Company</dt>
+          <dd>{{company.name}}</dd>
+        </dl>
+      </article>
+      {{/each}}
+    </script>
+    <script src="collection_exercises.js"></script>
+  </body>
+</html> 
