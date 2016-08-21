@@ -1,79 +1,79 @@
-var ProductModel = Backbone.Model.extend({
-  initialize: function() {
-    $.when(this.set("date", new Date())).done(function() {
-      this.set("datetime", formatDatetime(this.get("date")));
-      this.set("date_formatted", formatDate(this.get("date")));
-    }.bind(this) );
-    this.bind();
-  },
-  bind: function() {
-    this.on("change:date", function() {
-      this.set("datetime", formatDatetime(this.get("date")));
-      this.set("date_formatted", formatDate(this.get("date")));
-    });
-  },
-  render: function() {
-    $("article").html(templates.product(product_1.toJSON()));
-  }
-});
-
-$("form").on("submit", function(e){
-  e.preventDefault();
-
-  var inputs = $(this).serializeArray();
-
-  inputs.forEach(function(input) {
-    product_1.set(input.name, input.value);
-  });
-
-  product_1.set("date", new Date());
-
-  product_1.render();
-});
-
-var templates = {};
+var ItemModel,
+    items = [],
+    templates = {},
+    criteria = "name";
 
 $("[type='text/x-handlebars']").each(function() {
   $template = $(this);
   templates[$template.attr("id")] = Handlebars.compile($template.html());
 });
 
-var product_1 = new ProductModel(product_json);
+Handlebars.registerPartial("item", $("[id='item']").html());
 
-$("article").html(templates.product(product_1.toJSON()));
-$("fieldset").html(templates.form(product_1.toJSON()));
-
-
-function formatDatetime(date) {
-  var datetime = date.getFullYear() + "-" + addZero(date.getMonth() + 1)
-  datetime += "-" + addZero(date.getDate())
-  datetime += "T" + addZero(date.getHours()) + ":" + addZero(date.getMinutes()) + ":" + addZero(date.getSeconds());
-  return datetime;
-}
-
-function formatDate(date) {
-  var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      suffix = dateSuffix(date),
-      formatted_date;
-
-  formatted_date = months[date.getMonth()] + " " + date.getDate() + suffix;
-  formatted_date += ", " + date.getFullYear() + " " + addZero(date.getHours()) + ":" + addZero(date.getMinutes()) + ":" + addZero(date.getSeconds());
-  return formatted_date;
-}
-
-function addZero(number) {
-  var fixed_num = number < 10 ? "0" : "";
-  return fixed_num += number;
-}
-
-function dateSuffix(date) {
-  var suffix = "th",
-      suffixes = ["st", "nd", "rd"];
-
-  if (date.getDate() <= suffixes.length ||
-      date.getDate() > 20 && date.getDate() < 24) {
-    suffix = suffixes[date.getDate() % 10 - 1]
+ItemModel = Backbone.Model.extend({
+  initialize: function() {
+    this.set("id", items.length + 1);
+    items.push(this);
+    render();
   }
+});
 
-  return suffix;
+items_json.forEach(function(item) {
+  new ItemModel(item);
+});
+
+render();
+
+$("[data-prop='name']").on("click", function() {
+  criteria = "name";
+  render();
+});
+
+$("th").on("click", function() {
+  criteria = $(this).attr("data-prop");
+  render();
+});
+
+$("form").on("submit", function(e) {
+  e.preventDefault();
+
+  var itemProps = $(this).serializeArray(),
+      item = new ItemModel();
+
+  itemProps.forEach(function(prop) {
+    item.set(prop.name, prop.value);
+  });
+
+  render();
+});
+
+$("table").on("click", "td a", function(e) {
+  e.preventDefault();
+
+  var id = +$(e.target).attr("data-id");
+
+  items = items.filter(function(item) {
+    return id !== item.toJSON().id;
+  });
+
+  render();
+});
+
+$("p a").on("click", function(e) {
+  e.preventDefault();
+
+  items = [];
+  render();
+});
+
+
+function render() {
+  sortItems();
+  $("tbody").html(templates.items({ items: items }));
+}
+
+function sortItems() {
+  items = _.sortBy(items, function(item) {
+    return item.toJSON()[criteria]
+  });
 }
